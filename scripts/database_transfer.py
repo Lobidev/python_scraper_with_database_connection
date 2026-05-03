@@ -1,11 +1,47 @@
 from database_connection import get_connection
-
+import csv
 # == Variablen 
 connection = get_connection() # Verbindung holen
 
 cursor = connection.cursor()
 
+# == CSV Export: Datenbank → CSV ==
+def test_export_to_csv(filename="csv_datas/export.csv"):
+    cursor.execute("SELECT * FROM testdatas")
+    rows = cursor.fetchall()
+    columns = [desc[0] for desc in cursor.description]  # Spaltennamen holen
 
+    with open(filename, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(columns)  # Header schreiben
+        writer.writerows(rows)    # Daten schreiben
+
+    print(f"✅ {len(rows)} Einträge nach '{filename}' exportiert.")
+
+
+# == CSV Import: CSV → Datenbank ==
+def test_import_from_csv(filename="csv_datas/export.csv"):
+    with open(filename, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        rows = [(
+            int(row["Person_ID"]),
+            row["firstname"],
+            row["lastname"],
+            row["description"]
+        ) for row in reader]
+
+    cursor.executemany(
+        "INSERT INTO testdatas (Person_ID, firstname, lastname, description) VALUES (%s, %s, %s, %s)",
+        rows
+    )
+    connection.commit()
+    print(f"✅ {len(rows)} Einträge aus '{filename}' importiert.")
+
+
+# == Verbindung schliessen ==
+def close():
+    cursor.close()
+    connection.close()
 
 # == Methoden ==
 def test_datas():
