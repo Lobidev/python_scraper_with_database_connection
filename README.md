@@ -14,3 +14,6 @@
 4. .env einrichten
    cp .env.example .env
    # .env öffnen und Werte anpassen
+
+## Liste aller verwendeten Packages für dieses Projekt
+1. MySQL-Connector-Python 
