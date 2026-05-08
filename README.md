@@ -16,4 +16,9 @@
    # .env öffnen und Werte anpassen
 
 ## Liste aller verwendeten Packages für dieses Projekt
-1. MySQL-Connector-Python 
+1. MySQL-Connector-Python
+2. Requests (Webseiten Abfragen) 
+3. Beautifulsoup4  ("Scraping" Bibliotheken)
+
+## Für alle die selbst Legal das lernen möchten kann man das auf der folgenden Webseite lernen
+https://web-scraping.dev/ 
