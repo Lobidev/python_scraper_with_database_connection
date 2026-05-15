@@ -1,82 +1,56 @@
 from database_connection import get_connection
 from scraper import quote_datas
 import csv
+import os
 
 # == Variablen 
 connection = get_connection()
 cursor = connection.cursor()
 
-# == CSV Export: Datenbank → CSV ==
-def test_export_to_csv(filename="csv_datas/export.csv"):
-    cursor.execute("SELECT * FROM testdatas")
-    rows = cursor.fetchall()
+
+# === Scraper Methods ===
+def import_database_to_csv(filename="csv_datas/export_csv_datas.csv"):
+    cursor.execute('SELECT * FROM qoutes_user')
+    datas = cursor.fetchall()
+    columns = [desc[0] for desc in cursor.description]
+    with open(filename, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(columns)
+        writer.writerows(datas)
+    print(f"Die Daten wurden erfolgreich in die CSV-Datei imporitert zu finden unter folgendem Pfad {filename}")
+
+
+def import_database_to_csv(filename="csv_datas/export_csv_datas.csv"):
+    os.makedirs("csv_datas", exist_ok=True)
+    cursor.execute('SELECT * FROM quotes_user')  # ← Tippfehler behoben
+    datas = cursor.fetchall()
     columns = [desc[0] for desc in cursor.description]
 
-    with open(filename, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
+    with open(filename, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
         writer.writerow(columns)
-        writer.writerows(rows)
+        writer.writerows(datas)
 
-    print(f"✅ {len(rows)} Einträge nach '{filename}' exportiert.")
+    print(f"Daten erfolgreich exportiert → {filename}")
 
 
-# == CSV Import: CSV → Datenbank ==
-def test_import_from_csv(filename="csv_datas/export.csv"):
-    with open(filename, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+def import_csv_to_database(filename="csv_datas/export_csv_datas.csv"):
+    with open(filename, "r", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
         rows = [(
-            int(row["Person_ID"]),
-            row["firstname"],
-            row["lastname"],
-            row["description"]
+            int(row["userID"]),
+            row["username"],
+            row["text"],
+            row["tags"]
         ) for row in reader]
 
     cursor.executemany(
-        "INSERT INTO testdatas (Person_ID, firstname, lastname, description) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO quotes_user (userID, username, text, tags) VALUES (%s, %s, %s, %s)",
         rows
     )
     connection.commit()
-    print(f"✅ {len(rows)} Einträge aus '{filename}' importiert.")
-
-
-# == Testdaten ==
-def test_datas():
-    return [
-        (1,  "Anna",    "Müller",     "Anna arbeitet als Softwareentwicklerin in München und hat über 8 Jahre Erfahrung in der Webentwicklung."),
-        (2,  "Ben",     "Schmidt",    "Ben ist Projektmanager bei einer Unternehmensberatung und leitet internationale Teams."),
-        (3,  "Clara",   "Weber",      "Clara studiert Medizin im 6. Semester und engagiert sich ehrenamtlich im Roten Kreuz."),
-        (4,  "David",   "Fischer",    "David ist selbstständiger Grafikdesigner und spezialisiert auf Corporate Identity und Branding."),
-        (5,  "Eva",     "Bauer",      "Eva arbeitet als Lehrerin an einer Grundschule und hat eine Leidenschaft für kreative Pädagogik."),
-        (6,  "Felix",   "Hoffmann",   "Felix ist Datenwissenschaftler bei einem Berliner Startup und beschäftigt sich mit Machine Learning."),
-        (7,  "Greta",   "Koch",       "Greta ist Architektin und hat mehrere preisgekrönte Wohnbauprojekte in Hamburg realisiert."),
-        (8,  "Hans",    "Richter",    "Hans ist pensionierter Ingenieur und gibt sein Wissen als Mentor an junge Berufseinsteiger weiter."),
-        (9,  "Ida",     "Klein",      "Ida arbeitet als UX-Designerin und nutzt nutzerzentrierte Methoden zur Produktentwicklung."),
-        (10, "Jonas",   "Wolf",       "Jonas ist Freelance-Fotograf und reist für Aufträge durch ganz Europa."),
-        (11, "Klara",   "Schröder",   "Klara ist Rechtsanwältin mit Schwerpunkt Arbeitsrecht und vertritt Mandanten vor Gericht."),
-        (12, "Leon",    "Neumann",    "Leon studiert Informatik im Master und forscht im Bereich Cybersicherheit."),
-        (13, "Maria",   "Schwarz",    "Maria ist Ernährungsberaterin und hilft Klienten dabei, einen gesunden Lebensstil zu entwickeln."),
-        (14, "Nico",    "Zimmermann", "Nico ist Mechatroniker und arbeitet in der Automobilindustrie an elektrischen Antriebssystemen."),
-        (15, "Olivia",  "Braun",      "Olivia ist Marketingleiterin bei einem E-Commerce-Unternehmen und verantwortet das digitale Marketing."),
-    ]
-
-
-# == Tabellen erstellen ==
-def create_testTable():
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS testdatas (
-            Person_ID   INT PRIMARY KEY,
-            firstname   VARCHAR(255),
-            lastname    VARCHAR(255),
-            description VARCHAR(1000)
-        )
-    """)
-    cursor.executemany(
-        "INSERT INTO testdatas (Person_ID, firstname, lastname, description) VALUES (%s, %s, %s, %s)",
-        test_datas()
-    )
-    connection.commit()
-    print("✅ Testdaten erfolgreich geladen.")
-
+    print(f"Einträge aus '{filename}' erfolgreich in die Datenbank importiert!")
+    
 
 def create_quoteTable():
     cursor.execute("""
@@ -99,3 +73,76 @@ def create_quoteTable():
 def close_databases():
     cursor.close()
     connection.close()
+
+
+# === Test-Funktionen und Test Daten ===
+
+def test_export_to_csv(filename="csv_datas/test_export.csv"): # == CSV Export: Datenbank → CSV ==
+    cursor.execute("SELECT * FROM testdatas")
+    rows = cursor.fetchall()
+    columns = [desc[0] for desc in cursor.description]
+
+    with open(filename, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(columns)
+        writer.writerows(rows)
+
+    print(f"✅ {len(rows)} Einträge nach '{filename}' exportiert.")
+
+
+# == CSV Import: CSV → Datenbank ==
+def test_import_from_csv(filename="csv_datas/test_export.csv"):
+    with open(filename, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        rows = [(
+            int(row["Person_ID"]),
+            row["firstname"],
+            row["lastname"],
+            row["description"]
+        ) for row in reader]
+
+    cursor.executemany(
+        "INSERT INTO testdatas (Person_ID, firstname, lastname, description) VALUES (%s, %s, %s, %s)",
+        rows
+    )
+    connection.commit()
+    print(f"✅ {len(rows)} Einträge aus '{filename}' importiert.")
+
+
+
+def test_datas(): # == Testdaten ==
+    return [
+        (1,  "Anna",    "Müller",     "Anna arbeitet als Softwareentwicklerin in München und hat über 8 Jahre Erfahrung in der Webentwicklung."),
+        (2,  "Ben",     "Schmidt",    "Ben ist Projektmanager bei einer Unternehmensberatung und leitet internationale Teams."),
+        (3,  "Clara",   "Weber",      "Clara studiert Medizin im 6. Semester und engagiert sich ehrenamtlich im Roten Kreuz."),
+        (4,  "David",   "Fischer",    "David ist selbstständiger Grafikdesigner und spezialisiert auf Corporate Identity und Branding."),
+        (5,  "Eva",     "Bauer",      "Eva arbeitet als Lehrerin an einer Grundschule und hat eine Leidenschaft für kreative Pädagogik."),
+        (6,  "Felix",   "Hoffmann",   "Felix ist Datenwissenschaftler bei einem Berliner Startup und beschäftigt sich mit Machine Learning."),
+        (7,  "Greta",   "Koch",       "Greta ist Architektin und hat mehrere preisgekrönte Wohnbauprojekte in Hamburg realisiert."),
+        (8,  "Hans",    "Richter",    "Hans ist pensionierter Ingenieur und gibt sein Wissen als Mentor an junge Berufseinsteiger weiter."),
+        (9,  "Ida",     "Klein",      "Ida arbeitet als UX-Designerin und nutzt nutzerzentrierte Methoden zur Produktentwicklung."),
+        (10, "Jonas",   "Wolf",       "Jonas ist Freelance-Fotograf und reist für Aufträge durch ganz Europa."),
+        (11, "Klara",   "Schröder",   "Klara ist Rechtsanwältin mit Schwerpunkt Arbeitsrecht und vertritt Mandanten vor Gericht."),
+        (12, "Leon",    "Neumann",    "Leon studiert Informatik im Master und forscht im Bereich Cybersicherheit."),
+        (13, "Maria",   "Schwarz",    "Maria ist Ernährungsberaterin und hilft Klienten dabei, einen gesunden Lebensstil zu entwickeln."),
+        (14, "Nico",    "Zimmermann", "Nico ist Mechatroniker und arbeitet in der Automobilindustrie an elektrischen Antriebssystemen."),
+        (15, "Olivia",  "Braun",      "Olivia ist Marketingleiterin bei einem E-Commerce-Unternehmen und verantwortet das digitale Marketing."),
+    ]
+
+
+
+def create_testTable(): # == Tabellen erstellen ==
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS testdatas (
+            Person_ID   INT PRIMARY KEY,
+            firstname   VARCHAR(255),
+            lastname    VARCHAR(255),
+            description VARCHAR(1000)
+        )
+    """)
+    cursor.executemany(
+        "INSERT INTO testdatas (Person_ID, firstname, lastname, description) VALUES (%s, %s, %s, %s)",
+        test_datas()
+    )
+    connection.commit()
+    print("✅ Testdaten erfolgreich geladen.")

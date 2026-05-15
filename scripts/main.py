@@ -1,20 +1,36 @@
 from database_connection import get_connection
 from database_transfer import *
 
-choice = int(input('Welcome to your scraper. What do you want? \n'
-'1. Testdatas into your Database \n'
-'2. [Test] export Database Datas into CSV \n'
-'3. [Test] export CSV Datas into the Database \n'
-'4. Webscraper aktivieren (aktuell nur in die Datenbank transferieren) \n'))
+choice = int(input('==================================\n'
+'Willkommen zum Scraper was möchtest du gerne tun? \n'
+'=============1. Scraper Menü ================= \n'
+'1. Daten scrapen und in eine Datenbank speichern \n'
+'2. Daten von CSV in eine Datenbank speichern \n'
+'3. Datenbank Daten in eine CSV-Datei speichern \n'
+'=============2. Test (mit Testdaten) Menü ================= \n'
+'4. Testdaten generieren und in eine Datenbank speichern \n'
+'5. Daten von CSV in eine Datenbank speichern \n'
+'6. Datenbank Daten in eine CSV-Datei speichern \n'
+'================================== \n'
+'Eingabe: '
+))
+
+match choice:
+    case 1: 
+         create_quoteTable()
+         close_databases()
+    case 2:
+        import_csv_to_database()
+    case 3:
+        import_database_to_csv()
+    case 4:
+        create_testTable()
+        close_databases()
+    case 5:
+        test_import_from_csv()
+    case 6:
+        test_export_to_csv()
+    
 
 
-if choice == 1: 
-    create_testTable()
-    close_databases()
-if choice == 2:
-    test_export_to_csv()
-if choice == 3: 
-    test_import_from_csv()
-if choice == 4: 
-    create_quoteTable()
-    close_databases()
+   
