@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 
-url = requests.get("https://quotes.toscrape.com/")
+url = requests.get("https://quotes.toscrape.com/") # Webseite von der extrahiert werden soll
 soup = BeautifulSoup(url.text, "html.parser")
 
 class Quote:
